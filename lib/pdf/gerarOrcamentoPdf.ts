@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import type { ItemOrcamento } from '@/lib/cart/CartContext'
+import { UNIDADE_ABREVIACAO } from '@/lib/db/produtos'
 
 async function urlParaBase64(url: string): Promise<string | null> {
   try {
@@ -35,11 +36,13 @@ export async function gerarOrcamentoPdf(itens: ItemOrcamento[]) {
   doc.setFillColor(21, 128, 61)
   doc.rect(14, y, 182, 8, 'F')
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(10)
+  doc.setFontSize(9)
   doc.text('Foto', 18, y + 6)
-  doc.text('Produto', 45, y + 6)
+  doc.text('Produto', 42, y + 6)
+  doc.text('Marca', 100, y + 6)
   doc.text('Codigo', 130, y + 6)
-  doc.text('Qtd', 172, y + 6)
+  doc.text('Qtd', 158, y + 6)
+  doc.text('Un.', 175, y + 6)
   y += 12
 
   doc.setTextColor(0, 0, 0)
@@ -61,10 +64,12 @@ export async function gerarOrcamentoPdf(itens: ItemOrcamento[]) {
       }
     }
 
-    doc.setFontSize(10)
-    doc.text(item.nome, 45, y + 12, { maxWidth: 80 })
+    doc.setFontSize(9)
+    doc.text(item.nome, 42, y + 12, { maxWidth: 55 })
+    doc.text(item.marca ?? '-', 100, y + 12, { maxWidth: 26 })
     doc.text(`COD ${item.codigoInterno}`, 130, y + 12)
-    doc.text(String(item.quantidade), 174, y + 12)
+    doc.text(String(item.quantidade), 160, y + 12)
+    doc.text(UNIDADE_ABREVIACAO[item.unidade], 175, y + 12)
 
     y += imgSize + 8
     doc.setDrawColor(230)

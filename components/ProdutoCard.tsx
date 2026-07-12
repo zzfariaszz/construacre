@@ -4,6 +4,7 @@ import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { Heart, ImageOff, Check, Clock, XCircle, Share2 } from 'lucide-react'
 import { useCart } from '@/lib/cart/CartContext'
+import { useFavoritos } from '@/lib/favoritos/FavoritosContext'
 import type { StatusProduto, UnidadeProduto } from '@/lib/db/produtos'
 import { STATUS_LABEL } from '@/lib/db/produtos'
 
@@ -171,12 +172,12 @@ export type Produto = {
 
 type ProdutoCardProps = {
   produto: Produto
-  favorito: boolean
-  onToggleFavorito: (id: number) => void
 }
 
-export default function ProdutoCard({ produto, favorito, onToggleFavorito }: ProdutoCardProps) {
+export default function ProdutoCard({ produto }: ProdutoCardProps) {
   const { adicionarItem } = useCart()
+  const { favoritos, toggleFavorito } = useFavoritos()
+  const favorito = favoritos.includes(produto.id)
   const [carregada, setCarregada] = useState(false)
 
   const handleCompartilhar = () => {
@@ -195,7 +196,7 @@ export default function ProdutoCard({ produto, favorito, onToggleFavorito }: Pro
         <IconButton onClick={handleCompartilhar} aria-label="Compartilhar no WhatsApp">
           <Share2 size={16} />
         </IconButton>
-        <FavButton onClick={() => onToggleFavorito(produto.id)} aria-label="Favoritar produto">
+        <FavButton onClick={() => toggleFavorito(produto.id)} aria-label="Favoritar produto">
           <Heart size={18} fill={favorito ? '#dc2626' : 'none'} color={favorito ? '#dc2626' : 'currentColor'} />
         </FavButton>
       </AcoesTopo>

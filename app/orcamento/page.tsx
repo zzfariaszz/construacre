@@ -5,6 +5,7 @@ import styled from 'styled-components'
 import { Trash2, Minus, Plus, Download, ImageOff } from 'lucide-react'
 import { useCart } from '@/lib/cart/CartContext'
 import { gerarOrcamentoPdf } from '@/lib/pdf/gerarOrcamentoPdf'
+import type { UnidadeProduto } from '@/lib/db/produtos'
 
 const PageWrapper = styled.div`
   max-width: 800px;
@@ -41,10 +42,7 @@ const Item = styled.div`
   gap: 14px;
   padding: 14px 0;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-
-  @media (max-width: 500px) {
-    flex-wrap: wrap;
-  }
+  flex-wrap: wrap;
 `
 
 const ItemFoto = styled.div`
@@ -68,7 +66,14 @@ const ItemFoto = styled.div`
 
 const ItemInfo = styled.div`
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
+`
+
+const ItemMarca = styled.span`
+  font-family: ${({ theme }) => theme.fonts.body};
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  display: block;
 `
 
 const ItemNome = styled.p`
@@ -114,6 +119,15 @@ const QtdValor = styled.span`
   font-size: 14px;
   min-width: 20px;
   text-align: center;
+`
+
+const UnidadeSelect = styled.select`
+  padding: 6px 8px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 6px;
+  font-family: ${({ theme }) => theme.fonts.body};
+  font-size: 12px;
+  background: #ffffff;
 `
 
 const RemoverButton = styled.button`
@@ -169,7 +183,7 @@ const BaixarButton = styled.button`
 `
 
 export default function OrcamentoPage() {
-  const { itens, removerItem, atualizarQuantidade, totalItens } = useCart()
+  const { itens, removerItem, atualizarQuantidade, atualizarUnidade, totalItens } = useCart()
   const [gerando, setGerando] = useState(false)
 
   const handleBaixarPdf = async () => {
@@ -197,9 +211,20 @@ export default function OrcamentoPage() {
               </ItemFoto>
 
               <ItemInfo>
+                {item.marca && <ItemMarca>{item.marca}</ItemMarca>}
                 <ItemNome>{item.nome}</ItemNome>
                 <ItemCodigo>COD {item.codigoInterno}</ItemCodigo>
               </ItemInfo>
+
+              <UnidadeSelect
+                value={item.unidade}
+                onChange={(e) => atualizarUnidade(item.id, e.target.value as UnidadeProduto)}
+              >
+                <option value="unidade">Unidade</option>
+                <option value="caixa">Caixa</option>
+                <option value="metro">Metro</option>
+                <option value="kg">Kg</option>
+              </UnidadeSelect>
 
               <QuantidadeControl>
                 <QtdButton

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import styled from 'styled-components'
-import { Trash2, Plus, Upload, ImageOff, Pencil } from 'lucide-react'
+import { Trash2, Plus, Upload, ImageOff, Pencil, Copy } from 'lucide-react'
 import EditarProdutoModal from '@/components/EditarProdutoModal'
 import type { Produto, StatusProduto, UnidadeProduto } from '@/lib/db/produtos'
 import { STATUS_LABEL } from '@/lib/db/produtos'
@@ -404,6 +404,19 @@ export default function ProdutosPage() {
     await carregarDados()
   }
 
+  const handleDuplicar = (produto: Produto, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCodigoInterno('')
+    setNome(`${produto.nome} (cópia)`)
+    setMarca(produto.marca ?? '')
+    setCategoriaId(String(produto.categoria_id ?? ''))
+    setStatus(produto.status)
+    setUnidade(produto.unidade)
+    setDestaque(false)
+    setPreviewUrl(produto.foto_url)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <div>
       <Title>Produtos</Title>
@@ -526,6 +539,9 @@ export default function ProdutosPage() {
           {produtosFiltrados.map((produto) => (
             <ItemCard key={produto.id} onClick={() => setProdutoEditando(produto)}>
               <AcoesTopo>
+                <AcaoButton onClick={(e) => handleDuplicar(produto, e)} aria-label="Duplicar produto">
+                  <Copy size={14} />
+                </AcaoButton>
                 <AcaoButton aria-label="Editar produto">
                   <Pencil size={14} />
                 </AcaoButton>

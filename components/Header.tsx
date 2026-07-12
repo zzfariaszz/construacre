@@ -4,19 +4,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import styled from 'styled-components'
-
-type Theme = {
-  colors: {
-    primaryDark: string
-    primaryLight: string
-  }
-  fonts: {
-    body: string
-  }
-}
+import FavoritosButton from '@/components/FavoritosButton'
 
 const HeaderWrapper = styled.header`
-  background: ${({ theme }: any) => theme.colors.primaryDark};
+  background: ${({ theme }) => theme.colors.primaryDark};
   position: sticky;
   top: 0;
   z-index: 50;
@@ -38,26 +29,28 @@ const LogoLink = styled(Link)`
 
 const Nav = styled.nav<{ $open: boolean }>`
   display: flex;
+  align-items: center;
   gap: 28px;
 
   @media (max-width: 768px) {
     display: ${({ $open }) => ($open ? 'flex' : 'none')};
     flex-direction: column;
+    align-items: flex-start;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: ${({ theme }: any) => theme.colors.primaryDark};
+    background: ${({ theme }) => theme.colors.primaryDark};
     padding: 16px 24px 24px;
     gap: 16px;
   }
 `
 
 const NavLink = styled(Link)`
-  font-family: ${({ theme }: any) => theme.fonts.body};
+  font-family: ${({ theme }) => theme.fonts.body};
   font-weight: 500;
   font-size: 14px;
-  color: ${({ theme }: any) => theme.colors.primaryLight};
+  color: ${({ theme }) => theme.colors.primaryLight};
 
   &:hover {
     color: #ffffff;
@@ -111,6 +104,7 @@ export default function Header() {
               {link.label}
             </NavLink>
           ))}
+          <FavoritosButton />
         </Nav>
       </TopBar>
     </HeaderWrapper>

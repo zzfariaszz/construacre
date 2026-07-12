@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import styled from 'styled-components'
 import ProdutoCard, { Produto as ProdutoCardType } from '@/components/ProdutoCard'
 import type { Produto as ProdutoDB } from '@/lib/db/produtos'
@@ -21,14 +20,6 @@ const ProdutosGrid = styled.div`
 `
 
 export default function HomeProdutos({ produtos }: { produtos: ProdutoDB[] }) {
-  const [favoritos, setFavoritos] = useState<number[]>([])
-
-  const toggleFavorito = (id: number) => {
-    setFavoritos((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    )
-  }
-
   if (produtos.length === 0) {
     return null
   }
@@ -47,14 +38,7 @@ export default function HomeProdutos({ produtos }: { produtos: ProdutoDB[] }) {
           unidade: produto.unidade,
         }
 
-        return (
-          <ProdutoCard
-            key={produto.id}
-            produto={produtoFormatado}
-            favorito={favoritos.includes(produto.id)}
-            onToggleFavorito={toggleFavorito}
-          />
-        )
+        return <ProdutoCard key={produto.id} produto={produtoFormatado} />
       })}
     </ProdutosGrid>
   )

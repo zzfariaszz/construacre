@@ -68,7 +68,7 @@ export async function buscarProdutos(termo: string): Promise<Produto[]> {
     SELECT p.*, c.nome as categoria_nome, c.slug as categoria_slug
     FROM produtos p
     LEFT JOIN categorias c ON p.categoria_id = c.id
-    WHERE p.nome ILIKE ${'%' + termo + '%'}
+    WHERE p.nome ILIKE ${'%' + termo + '%'} OR p.marca ILIKE ${'%' + termo + '%'}
     ORDER BY p.criado_em DESC
   `
   return rows

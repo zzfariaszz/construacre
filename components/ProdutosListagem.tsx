@@ -81,7 +81,6 @@ export default function ProdutosListagem({
   const router = useRouter()
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(categoriaSelecionadaInicial)
   const [resultadosBusca, setResultadosBusca] = useState<ProdutoDB[] | null>(null)
-  const [favoritos, setFavoritos] = useState<number[]>([])
 
   const tituloExibido = useMemo(() => {
     if (!categoriaAtiva) return 'Nossos Produtos'
@@ -102,12 +101,6 @@ export default function ProdutosListagem({
     const res = await fetch(`/api/produtos/buscar?q=${encodeURIComponent(termo)}`)
     const data = await res.json()
     setResultadosBusca(data)
-  }
-
-  const toggleFavorito = (id: number) => {
-    setFavoritos((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    )
   }
 
   const produtosFiltrados = useMemo(() => {
@@ -146,14 +139,7 @@ export default function ProdutosListagem({
               status: produto.status,
               unidade: produto.unidade,
             }
-            return (
-              <ProdutoCard
-                key={produto.id}
-                produto={produtoFormatado}
-                favorito={favoritos.includes(produto.id)}
-                onToggleFavorito={toggleFavorito}
-              />
-            )
+            return <ProdutoCard key={produto.id} produto={produtoFormatado} />
           })}
         </Grid>
       )}
