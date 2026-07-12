@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
-import { Heart, ImageOff, Check, Clock, Share2 } from 'lucide-react'
+import { Heart, ImageOff, Check, Clock, XCircle, Share2 } from 'lucide-react'
 import { useCart } from '@/lib/cart/CartContext'
+import type { StatusProduto, UnidadeProduto } from '@/lib/db/produtos'
+import { STATUS_LABEL } from '@/lib/db/produtos'
 
 const Card = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -92,6 +94,14 @@ const Skeleton = styled.div`
   animation: ${pulse} 1.4s ease-in-out infinite;
 `
 
+const Marca = styled.span`
+  font-family: ${({ theme }) => theme.fonts.body};
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  display: block;
+  margin-bottom: 2px;
+`
+
 const Nome = styled.p`
   font-family: ${({ theme }) => theme.fonts.heading};
   font-weight: 600;
@@ -100,7 +110,13 @@ const Nome = styled.p`
   margin: 0 0 6px;
 `
 
-const Disponibilidade = styled.span<{ $disponivel: boolean }>`
+const statusColor: Record<StatusProduto, { bg: string; text: string }> = {
+  disponivel: { bg: '#EAF3DE', text: '#27500A' },
+  aguardando_estoque: { bg: '#FAEEDA', text: '#854F0B' },
+  indisponivel: { bg: '#FEE2E2', text: '#991B1B' },
+}
+
+const StatusBadge = styled.span<{ $status: StatusProduto }>`
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -108,10 +124,8 @@ const Disponibilidade = styled.span<{ $disponivel: boolean }>`
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 4px;
-  background: ${({ theme, $disponivel }) =>
-    $disponivel ? theme.colors.successBg : theme.colors.warningBg};
-  color: ${({ theme, $disponivel }) =>
-    $disponivel ? theme.colors.success : theme.colors.warning};
+  background: ${({ $status }) => statusColor[$status].bg};
+  color: ${({ $status }) => statusColor[$status].text};
 `
 
 const AdicionarButton = styled.button`
@@ -131,7 +145,18 @@ const AdicionarButton = styled.button`
     background: ${({ theme }) => theme.colors.primary};
     color: #ffffff;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `
+
+function statusIcone(status: StatusProduto) {
+  if (status === 'disponivel') return <Check size={12} />
+  if (status === 'aguardando_estoque') return <Clock size={12} />
+  return <XCircle size={12} />
+}
 
 export type Produto = {
   id: number
@@ -139,7 +164,9 @@ export type Produto = {
   nome: string
   categoria: string
   fotoUrl?: string
-  disponivel: boolean
+  marca?: string | null
+  status: StatusProduto
+  unidade: UnidadeProduto
 }
 
 type ProdutoCardProps = {
@@ -153,7 +180,9 @@ export default function ProdutoCard({ produto, favorito, onToggleFavorito }: Pro
   const [carregada, setCarregada] = useState(false)
 
   const handleCompartilhar = () => {
-    const texto = `Olá! Tenho interesse neste produto:\n\n*${produto.nome}*\nCódigo: ${produto.codigoInterno}\n\nGostaria de saber mais informações.`
+    const texto = `Olá! Tenho interesse neste produto:\n\n*${produto.nome}*${
+      produto.marca ? `\nMarca: ${produto.marca}` : ''
+    }\nCódigo: ${produto.codigoInterno}\n\nGostaria de saber mais informações.`
     const link = `https://wa.me/5568999238467?text=${encodeURIComponent(texto)}`
     window.open(link, '_blank')
   }
@@ -188,23 +217,27 @@ export default function ProdutoCard({ produto, favorito, onToggleFavorito }: Pro
         )}
       </ImagemWrapper>
 
+      {produto.marca && <Marca>{produto.marca}</Marca>}
       <Nome>{produto.nome}</Nome>
-      <Disponibilidade $disponivel={produto.disponivel}>
-        {produto.disponivel ? <Check size={12} /> : <Clock size={12} />}
-        {produto.disponivel ? 'Disponível' : 'Sob consulta'}
-      </Disponibilidade>
+      <StatusBadge $status={produto.status}>
+        {statusIcone(produto.status)}
+        {STATUS_LABEL[produto.status]}
+      </StatusBadge>
 
       <AdicionarButton
+        disabled={produto.status === 'indisponivel'}
         onClick={() =>
           adicionarItem({
             id: produto.id,
             codigoInterno: produto.codigoInterno,
             nome: produto.nome,
             fotoUrl: produto.fotoUrl,
+            marca: produto.marca ?? undefined,
+            unidade: produto.unidade,
           })
         }
       >
-        Adicionar ao orçamento
+        {produto.status === 'indisponivel' ? 'Indisponível' : 'Adicionar ao orçamento'}
       </AdicionarButton>
     </Card>
   )

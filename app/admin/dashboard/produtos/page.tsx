@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import styled from 'styled-components'
-import { Trash2, Plus, Upload, ImageOff, Layers, Zap, Droplet, Wrench, DoorOpen, Grid3x3, Package, Paintbrush, Hammer, Ruler } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-
-const iconesDisponiveis: Record<string, LucideIcon> = {
-  Layers, Zap, Droplet, Wrench, DoorOpen, Grid3x3, Package, Paintbrush, Hammer, Ruler,
-}
+import { Trash2, Plus, Upload, ImageOff, Pencil } from 'lucide-react'
+import EditarProdutoModal from '@/components/EditarProdutoModal'
+import type { Produto, StatusProduto, UnidadeProduto } from '@/lib/db/produtos'
+import { STATUS_LABEL } from '@/lib/db/produtos'
 
 const Title = styled.h1`
   font-family: ${({ theme }) => theme.fonts.heading};
@@ -154,6 +152,22 @@ const ErrorMsg = styled.p`
   margin: 0;
 `
 
+const FiltrosBar = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+`
+
+const FiltroSelect = styled.select`
+  padding: 7px 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  font-family: ${({ theme }) => theme.fonts.body};
+  font-size: 13px;
+  background: #ffffff;
+`
+
 const Lista = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -165,6 +179,11 @@ const ItemCard = styled.div`
   border-radius: 10px;
   padding: 12px;
   position: relative;
+  cursor: pointer;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
 `
 
 const ItemImagem = styled.div`
@@ -195,12 +214,20 @@ const ItemCodigo = styled.span`
   border-radius: 4px;
 `
 
+const ItemMarca = styled.span`
+  font-family: ${({ theme }) => theme.fonts.body};
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  display: block;
+  margin-top: 6px;
+`
+
 const ItemNome = styled.p`
   font-family: ${({ theme }) => theme.fonts.heading};
   font-weight: 600;
   font-size: 13px;
   color: ${({ theme }) => theme.colors.text};
-  margin: 6px 0 2px;
+  margin: 2px 0;
 `
 
 const ItemCategoria = styled.span`
@@ -209,10 +236,15 @@ const ItemCategoria = styled.span`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-const DeleteButton = styled.button`
+const AcoesTopo = styled.div`
   position: absolute;
   top: 10px;
   right: 10px;
+  display: flex;
+  gap: 6px;
+`
+
+const AcaoButton = styled.button`
   background: #ffffff;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 6px;
@@ -222,6 +254,12 @@ const DeleteButton = styled.button`
   display: flex;
 
   &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+const DeleteButton = styled(AcaoButton)`
+  &:hover {
     color: #dc2626;
   }
 `
@@ -230,18 +268,6 @@ type Categoria = {
   id: number
   nome: string
   slug: string
-  icone: string
-}
-
-type Produto = {
-  id: number
-  codigo_interno: string
-  nome: string
-  categoria_id: number | null
-  categoria_nome?: string
-  foto_url: string | null
-  destaque: boolean
-  disponivel: boolean
 }
 
 export default function ProdutosPage() {
@@ -250,11 +276,18 @@ export default function ProdutosPage() {
 
   const [codigoInterno, setCodigoInterno] = useState('')
   const [nome, setNome] = useState('')
+  const [marca, setMarca] = useState('')
   const [categoriaId, setCategoriaId] = useState('')
+  const [status, setStatus] = useState<StatusProduto>('disponivel')
+  const [unidade, setUnidade] = useState<UnidadeProduto>('unidade')
   const [destaque, setDestaque] = useState(false)
-  const [disponivel, setDisponivel] = useState(true)
   const [arquivo, setArquivo] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const [filtroMarca, setFiltroMarca] = useState('')
+  const [filtroStatus, setFiltroStatus] = useState('')
+
+  const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null)
 
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
@@ -272,6 +305,19 @@ export default function ProdutosPage() {
     carregarDados()
   }, [])
 
+  const marcasDisponiveis = useMemo(() => {
+    const marcas = produtos.map((p) => p.marca).filter((m): m is string => !!m)
+    return Array.from(new Set(marcas)).sort()
+  }, [produtos])
+
+  const produtosFiltrados = useMemo(() => {
+    return produtos.filter((p) => {
+      if (filtroMarca && p.marca !== filtroMarca) return false
+      if (filtroStatus && p.status !== filtroStatus) return false
+      return true
+    })
+  }, [produtos, filtroMarca, filtroStatus])
+
   const handleArquivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -282,9 +328,11 @@ export default function ProdutosPage() {
   const resetForm = () => {
     setCodigoInterno('')
     setNome('')
+    setMarca('')
     setCategoriaId('')
+    setStatus('disponivel')
+    setUnidade('unidade')
     setDestaque(false)
-    setDisponivel(true)
     setArquivo(null)
     setPreviewUrl(null)
   }
@@ -323,10 +371,12 @@ export default function ProdutosPage() {
         body: JSON.stringify({
           codigoInterno,
           nome,
+          marca: marca || undefined,
           categoriaId: Number(categoriaId),
           fotoUrl,
+          status,
+          unidade,
           destaque,
-          disponivel,
         }),
       })
 
@@ -347,7 +397,8 @@ export default function ProdutosPage() {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation()
     if (!confirm('Excluir este produto?')) return
     await fetch(`/api/produtos/${id}`, { method: 'DELETE' })
     await carregarDados()
@@ -367,6 +418,15 @@ export default function ProdutosPage() {
               onChange={(e) => setCodigoInterno(e.target.value)}
               placeholder="Ex: 4821"
               required
+            />
+          </Field>
+
+          <Field>
+            <Label>Marca</Label>
+            <Input
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              placeholder="Opcional"
             />
           </Field>
 
@@ -396,6 +456,25 @@ export default function ProdutosPage() {
             </Select>
           </Field>
 
+          <Field>
+            <Label>Status</Label>
+            <Select value={status} onChange={(e) => setStatus(e.target.value as StatusProduto)}>
+              <option value="disponivel">Disponível</option>
+              <option value="aguardando_estoque">Aguardando estoque</option>
+              <option value="indisponivel">Indisponível</option>
+            </Select>
+          </Field>
+
+          <Field>
+            <Label>Unidade</Label>
+            <Select value={unidade} onChange={(e) => setUnidade(e.target.value as UnidadeProduto)}>
+              <option value="unidade">Unidade</option>
+              <option value="caixa">Caixa</option>
+              <option value="metro">Metro</option>
+              <option value="kg">Kg</option>
+            </Select>
+          </Field>
+
           <FieldFull>
             <Label>Foto do produto</Label>
             <UploadArea>
@@ -409,14 +488,7 @@ export default function ProdutosPage() {
           <Field>
             <CheckboxRow>
               <input type="checkbox" checked={destaque} onChange={(e) => setDestaque(e.target.checked)} />
-              Mostrar em "Mais procurados"
-            </CheckboxRow>
-          </Field>
-
-          <Field>
-            <CheckboxRow>
-              <input type="checkbox" checked={disponivel} onChange={(e) => setDisponivel(e.target.checked)} />
-              Disponível
+              Mostrar em &quot;Mais procurados&quot;
             </CheckboxRow>
           </Field>
 
@@ -430,13 +502,37 @@ export default function ProdutosPage() {
       </Card>
 
       <Card>
-        <CardTitle>Produtos cadastrados ({produtos.length})</CardTitle>
+        <CardTitle>Produtos cadastrados ({produtosFiltrados.length})</CardTitle>
+
+        <FiltrosBar>
+          <FiltroSelect value={filtroMarca} onChange={(e) => setFiltroMarca(e.target.value)}>
+            <option value="">Todas as marcas</option>
+            {marcasDisponiveis.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </FiltroSelect>
+
+          <FiltroSelect value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
+            <option value="">Todos os status</option>
+            <option value="disponivel">Disponível</option>
+            <option value="aguardando_estoque">Aguardando estoque</option>
+            <option value="indisponivel">Indisponível</option>
+          </FiltroSelect>
+        </FiltrosBar>
+
         <Lista>
-          {produtos.map((produto) => (
-            <ItemCard key={produto.id}>
-              <DeleteButton onClick={() => handleDelete(produto.id)} aria-label="Excluir produto">
-                <Trash2 size={14} />
-              </DeleteButton>
+          {produtosFiltrados.map((produto) => (
+            <ItemCard key={produto.id} onClick={() => setProdutoEditando(produto)}>
+              <AcoesTopo>
+                <AcaoButton aria-label="Editar produto">
+                  <Pencil size={14} />
+                </AcaoButton>
+                <DeleteButton onClick={(e) => handleDelete(produto.id, e)} aria-label="Excluir produto">
+                  <Trash2 size={14} />
+                </DeleteButton>
+              </AcoesTopo>
               <ItemImagem>
                 {produto.foto_url ? (
                   <img src={produto.foto_url} alt={produto.nome} />
@@ -445,12 +541,27 @@ export default function ProdutosPage() {
                 )}
               </ItemImagem>
               <ItemCodigo>COD {produto.codigo_interno}</ItemCodigo>
+              {produto.marca && <ItemMarca>{produto.marca}</ItemMarca>}
               <ItemNome>{produto.nome}</ItemNome>
-              <ItemCategoria>{produto.categoria_nome ?? 'Sem categoria'}</ItemCategoria>
+              <ItemCategoria>
+                {produto.categoria_nome ?? 'Sem categoria'} · {STATUS_LABEL[produto.status]}
+              </ItemCategoria>
             </ItemCard>
           ))}
         </Lista>
       </Card>
+
+      {produtoEditando && (
+        <EditarProdutoModal
+          produto={produtoEditando}
+          categorias={categorias}
+          onClose={() => setProdutoEditando(null)}
+          onSalvo={() => {
+            setProdutoEditando(null)
+            carregarDados()
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import ProdutoCard, { Produto as ProdutoCardType } from '@/components/ProdutoCard'
+import type { Produto as ProdutoDB } from '@/lib/db/produtos'
 
 const ProdutosGrid = styled.div`
   display: grid;
@@ -18,14 +19,6 @@ const ProdutosGrid = styled.div`
     gap: 12px;
   }
 `
-
-type ProdutoDB = {
-  id: number
-  codigo_interno: string
-  nome: string
-  foto_url: string | null
-  disponivel: boolean
-}
 
 export default function HomeProdutos({ produtos }: { produtos: ProdutoDB[] }) {
   const [favoritos, setFavoritos] = useState<number[]>([])
@@ -47,9 +40,11 @@ export default function HomeProdutos({ produtos }: { produtos: ProdutoDB[] }) {
           id: produto.id,
           codigoInterno: produto.codigo_interno,
           nome: produto.nome,
-          categoria: '',
+          categoria: produto.categoria_slug ?? '',
           fotoUrl: produto.foto_url ?? undefined,
-          disponivel: produto.disponivel,
+          marca: produto.marca,
+          status: produto.status,
+          unidade: produto.unidade,
         }
 
         return (

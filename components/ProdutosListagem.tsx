@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import styled from 'styled-components'
 import BuscaProdutos from '@/components/BuscaProdutos'
 import CategoriaFiltro from '@/components/CategoriaFiltro'
 import ProdutoCard, { Produto as ProdutoCardType } from '@/components/ProdutoCard'
+import type { Produto as ProdutoDB } from '@/lib/db/produtos'
 
 const PageWrapper = styled.div`
   max-width: 1200px;
@@ -57,15 +59,6 @@ const VazioMsg = styled.p`
   padding: 40px 0;
 `
 
-type ProdutoDB = {
-  id: number
-  codigo_interno: string
-  nome: string
-  categoria_slug?: string
-  foto_url: string | null
-  disponivel: boolean
-}
-
 type Categoria = {
   id: number
   nome: string
@@ -73,7 +66,6 @@ type Categoria = {
 }
 
 type ProdutosListagemProps = {
-  titulo: string
   produtosIniciais: ProdutoDB[]
   categorias: Categoria[]
   categoriaSelecionadaInicial?: string | null
@@ -81,19 +73,28 @@ type ProdutosListagemProps = {
 }
 
 export default function ProdutosListagem({
-  titulo,
   produtosIniciais,
   categorias,
   categoriaSelecionadaInicial = null,
   banner,
 }: ProdutosListagemProps) {
-  const [termoBusca, setTermoBusca] = useState('')
+  const router = useRouter()
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(categoriaSelecionadaInicial)
   const [resultadosBusca, setResultadosBusca] = useState<ProdutoDB[] | null>(null)
   const [favoritos, setFavoritos] = useState<number[]>([])
 
+  const tituloExibido = useMemo(() => {
+    if (!categoriaAtiva) return 'Nossos Produtos'
+    const cat = categorias.find((c) => c.slug === categoriaAtiva)
+    return cat?.nome ?? 'Produtos'
+  }, [categoriaAtiva, categorias])
+
+  const handleSelecionarCategoria = (slug: string | null) => {
+    setCategoriaAtiva(slug)
+    router.push(slug ? `/produtos/${slug}` : '/produtos', { scroll: false })
+  }
+
   const handleBuscar = async (termo: string) => {
-    setTermoBusca(termo)
     if (!termo.trim()) {
       setResultadosBusca(null)
       return
@@ -117,8 +118,8 @@ export default function ProdutosListagem({
 
   return (
     <PageWrapper>
-      <Title>{titulo}</Title>
-{banner}
+      <Title>{tituloExibido}</Title>
+      {banner}
 
       <TopBar>
         <BuscaProdutos onBuscar={handleBuscar} />
@@ -127,7 +128,7 @@ export default function ProdutosListagem({
       <CategoriaFiltro
         categorias={categorias}
         categoriaAtiva={categoriaAtiva}
-        onSelecionar={setCategoriaAtiva}
+        onSelecionar={handleSelecionarCategoria}
       />
 
       {produtosFiltrados.length === 0 ? (
@@ -141,7 +142,9 @@ export default function ProdutosListagem({
               nome: produto.nome,
               categoria: produto.categoria_slug ?? '',
               fotoUrl: produto.foto_url ?? undefined,
-              disponivel: produto.disponivel,
+              marca: produto.marca,
+              status: produto.status,
+              unidade: produto.unidade,
             }
             return (
               <ProdutoCard

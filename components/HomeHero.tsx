@@ -5,6 +5,7 @@ import { Layers, Zap, Droplet, Wrench, DoorOpen, Grid3x3, Package, Paintbrush, H
 import type { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import HomeProdutos from '@/components/HomeProdutos'
+import type { Produto as ProdutoDB } from '@/lib/db/produtos'
 
 const iconesDisponiveis: Record<string, LucideIcon> = {
   Layers, Zap, Droplet, Wrench, DoorOpen, Grid3x3, Package, Paintbrush, Hammer, Ruler,
@@ -180,14 +181,6 @@ type Categoria = {
   nome: string
   slug: string
   icone: string
-}
-
-type ProdutoDB = {
-  id: number
-  codigo_interno: string
-  nome: string
-  foto_url: string | null
-  disponivel: boolean
 }
 
 type HomeHeroProps = {

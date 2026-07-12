@@ -1,12 +1,15 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import type { UnidadeProduto } from '@/lib/db/produtos'
 
 export type ItemOrcamento = {
   id: number
   codigoInterno: string
   nome: string
   fotoUrl?: string
+  marca?: string
+  unidade: UnidadeProduto
   quantidade: number
 }
 
@@ -15,6 +18,7 @@ type CartContextType = {
   adicionarItem: (item: Omit<ItemOrcamento, 'quantidade'>) => void
   removerItem: (id: number) => void
   atualizarQuantidade: (id: number, quantidade: number) => void
+  atualizarUnidade: (id: number, unidade: UnidadeProduto) => void
   limparCarrinho: () => void
   totalItens: number
 }
@@ -63,12 +67,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, quantidade } : i)))
   }
 
+  const atualizarUnidade = (id: number, unidade: UnidadeProduto) => {
+    setItens((prev) => prev.map((i) => (i.id === id ? { ...i, unidade } : i)))
+  }
+
   const limparCarrinho = () => setItens([])
   const totalItens = itens.reduce((soma, i) => soma + i.quantidade, 0)
 
   return (
     <CartContext.Provider
-      value={{ itens, adicionarItem, removerItem, atualizarQuantidade, limparCarrinho, totalItens }}
+      value={{
+        itens,
+        adicionarItem,
+        removerItem,
+        atualizarQuantidade,
+        atualizarUnidade,
+        limparCarrinho,
+        totalItens,
+      }}
     >
       {children}
     </CartContext.Provider>
