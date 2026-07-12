@@ -59,14 +59,6 @@ lib/
 └── auth.ts             # Lógica de autenticação e sessão
 middleware.ts           # Proteção de rotas do admin
 
-### Segurança
-
-- Senha do admin nunca fica em texto puro (hash bcrypt)
-- Sessão via cookie httpOnly, secure e sameSite strict
-- Middleware protege /admin/dashboard/* no Edge Runtime
-- Validação de tipo e tamanho de arquivo no upload
-- Rota /admin bloqueada de indexação via robots.txt
-
 ---
 
 ## Rodando localmente
