@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getFotosGaleria } from '@/lib/db/galeria'
 import SobreConteudo from '@/components/SobreConteudo'
 

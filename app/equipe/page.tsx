@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getVendedores } from '@/lib/db/vendedores'
 import EquipeGrid from '@/components/EquipeGrid'
 

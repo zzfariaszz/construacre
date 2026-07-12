@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { sql } from '@vercel/postgres'
 import { getCategorias } from '@/lib/db/categorias'
 import { getProdutosDestaque } from '@/lib/db/produtos'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getProdutosPorCategoria } from '@/lib/db/produtos'
 import { getCategorias } from '@/lib/db/categorias'
 import ProdutosListagem from '@/components/ProdutosListagem'
