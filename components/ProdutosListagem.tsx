@@ -77,6 +77,7 @@ type ProdutosListagemProps = {
   produtosIniciais: ProdutoDB[]
   categorias: Categoria[]
   categoriaSelecionadaInicial?: string | null
+  banner?: React.ReactNode
 }
 
 export default function ProdutosListagem({
@@ -84,6 +85,7 @@ export default function ProdutosListagem({
   produtosIniciais,
   categorias,
   categoriaSelecionadaInicial = null,
+  banner,
 }: ProdutosListagemProps) {
   const [termoBusca, setTermoBusca] = useState('')
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(categoriaSelecionadaInicial)
@@ -116,6 +118,7 @@ export default function ProdutosListagem({
   return (
     <PageWrapper>
       <Title>{titulo}</Title>
+{banner}
 
       <TopBar>
         <BuscaProdutos onBuscar={handleBuscar} />

@@ -2,8 +2,11 @@ import type { Metadata } from 'next'
 import { Archivo, Inter } from 'next/font/google'
 import StyledComponentsRegistry from '@/lib/registry'
 import AppThemeProvider from '@/lib/ThemeProvider'
+import { CartProvider } from '@/lib/cart/CartContext'
 import Header from '@/components/Header'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import OrcamentoButton from '@/components/OrcamentoButton'
+import Footer from '@/components/Footer'
 
 const archivo = Archivo({
   subsets: ['latin'],
@@ -35,9 +38,13 @@ export default function RootLayout({
       <body>
         <StyledComponentsRegistry>
           <AppThemeProvider>
-            <Header />
-            {children}
-            <WhatsAppButton />
+            <CartProvider>
+              <Header />
+              {children}
+              <Footer />
+              <WhatsAppButton />
+              <OrcamentoButton />
+            </CartProvider>
           </AppThemeProvider>
         </StyledComponentsRegistry>
       </body>
