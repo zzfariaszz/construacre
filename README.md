@@ -8,7 +8,7 @@ Site institucional e painel administrativo para a **Construacre**, loja de mater
 
 ## Sobre o projeto
 
-Site multi-página com catálogo de produtos, painel administrativo protegido por autenticação, upload de imagens e gestão de conteúdo sem necessidade de alterar código — tudo gerenciável pela própria loja através do painel `/admin`.
+Site multi-página com catálogo de produtos, painel administrativo protegido por autenticação, upload de imagens e gestão de conteúdo sem necessidade de alterar código.
 
 ### Principais funcionalidades
 
