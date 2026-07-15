@@ -4,7 +4,8 @@ import { useState } from 'react'
 import styled from 'styled-components'
 import { Trash2, Minus, Plus, Download, ImageOff } from 'lucide-react'
 import { useCart } from '@/lib/cart/CartContext'
-import { gerarOrcamentoPdf } from '@/lib/pdf/gerarOrcamentoPdf'
+import { compartilharOuBaixarOrcamento } from '@/lib/pdf/gerarOrcamentoPdf'
+import ModalEnviarVendedor from '@/components/ModalEnviarVendedor'
 import type { UnidadeProduto } from '@/lib/db/produtos'
 
 const PageWrapper = styled.div`
@@ -185,11 +186,15 @@ const BaixarButton = styled.button`
 export default function OrcamentoPage() {
   const { itens, removerItem, atualizarQuantidade, atualizarUnidade, totalItens } = useCart()
   const [gerando, setGerando] = useState(false)
+  const [mostrarModal, setMostrarModal] = useState(false)
 
   const handleBaixarPdf = async () => {
     setGerando(true)
     try {
-      await gerarOrcamentoPdf(itens)
+      const resultado = await compartilharOuBaixarOrcamento(itens)
+      if (!resultado.compartilhadoNativamente) {
+        setMostrarModal(true)
+      }
     } finally {
       setGerando(false)
     }
@@ -254,11 +259,13 @@ export default function OrcamentoPage() {
             </TotalTexto>
             <BaixarButton onClick={handleBaixarPdf} disabled={gerando}>
               <Download size={16} />
-              {gerando ? 'Gerando PDF...' : 'Baixar PDF'}
+              {gerando ? 'Gerando PDF...' : 'Baixar / Compartilhar PDF'}
             </BaixarButton>
           </Rodape>
         </>
       )}
+
+      {mostrarModal && <ModalEnviarVendedor onFechar={() => setMostrarModal(false)} />}
     </PageWrapper>
   )
 }

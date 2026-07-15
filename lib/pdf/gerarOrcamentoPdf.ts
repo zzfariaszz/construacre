@@ -17,7 +17,7 @@ async function urlParaBase64(url: string): Promise<string | null> {
   }
 }
 
-export async function gerarOrcamentoPdf(itens: ItemOrcamento[]) {
+async function montarPdf(itens: ItemOrcamento[]): Promise<jsPDF> {
   const doc = new jsPDF()
   const dataAtual = new Date().toLocaleDateString('pt-BR')
 
@@ -76,5 +76,48 @@ export async function gerarOrcamentoPdf(itens: ItemOrcamento[]) {
     doc.line(14, y - 4, 196, y - 4)
   }
 
-  doc.save(`orcamento-construacre-${Date.now()}.pdf`)
+  return doc
+}
+
+function nomeArquivo() {
+  return `orcamento-construacre-${Date.now()}.pdf`
+}
+
+type ResultadoCompartilhamento = {
+  compartilhadoNativamente: boolean
+}
+
+export async function compartilharOuBaixarOrcamento(
+  itens: ItemOrcamento[]
+): Promise<ResultadoCompartilhamento> {
+  const doc = await montarPdf(itens)
+  const blob = doc.output('blob')
+  const arquivo = new File([blob], nomeArquivo(), { type: 'application/pdf' })
+
+  const suportaCompartilharArquivo =
+    typeof navigator !== 'undefined' &&
+    'canShare' in navigator &&
+    navigator.canShare({ files: [arquivo] })
+
+  if (suportaCompartilharArquivo) {
+    try {
+      await navigator.share({
+        files: [arquivo],
+        title: 'Orçamento Construacre',
+        text: 'Segue meu orçamento da Construacre.',
+      })
+      return { compartilhadoNativamente: true }
+    } catch {
+      return { compartilhadoNativamente: true }
+    }
+  }
+
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = arquivo.name
+  link.click()
+  URL.revokeObjectURL(url)
+
+  return { compartilhadoNativamente: false }
 }
